@@ -4,7 +4,7 @@ import { env } from './config/env';
 
 async function bootstrap() {
   await connectDB();
-  console.log('[quickorder-api] connected to MongoDB');
+  console.log('[quickorder-api] connected to PostgreSQL');
 
   const app = createApp();
   const server = app.listen(env.PORT, () => {

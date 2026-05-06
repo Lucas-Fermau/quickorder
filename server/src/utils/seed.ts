@@ -1,8 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { connectDB } from '../config/db';
-import { User } from '../models/User';
-import { Product } from '../models/Product';
-import mongoose from 'mongoose';
+import { prisma } from '../config/db';
 
 const PRODUCTS = [
   {
@@ -118,34 +115,40 @@ const PRODUCTS = [
 ];
 
 async function seed() {
-  await connectDB();
-  console.log('Conectado ao MongoDB. Limpando coleções...');
+  console.log('Conectado ao banco. Limpando dados antigos do QuickOrder...');
 
-  await Promise.all([User.deleteMany({}), Product.deleteMany({})]);
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.review.deleteMany({});
+  await prisma.favorite.deleteMany({});
+  await prisma.product.deleteMany({});
+  await prisma.user.deleteMany({});
 
   const adminHash = await bcrypt.hash('123456', 10);
   const customerHash = await bcrypt.hash('123456', 10);
 
-  await User.create([
-    {
-      name: 'Administrador',
-      email: 'admin@quickorder.com',
-      password: adminHash,
-      role: 'admin',
-    },
-    {
-      name: 'Cliente Teste',
-      email: 'cliente@quickorder.com',
-      password: customerHash,
-      role: 'customer',
-    },
-  ]);
+  await prisma.user.createMany({
+    data: [
+      {
+        name: 'Administrador',
+        email: 'admin@quickorder.com',
+        password: adminHash,
+        role: 'admin',
+      },
+      {
+        name: 'Cliente Teste',
+        email: 'cliente@quickorder.com',
+        password: customerHash,
+        role: 'customer',
+      },
+    ],
+  });
   console.log('✓ Usuários criados (admin + cliente)');
 
-  await Product.insertMany(PRODUCTS);
+  await prisma.product.createMany({ data: PRODUCTS });
   console.log(`✓ ${PRODUCTS.length} produtos criados`);
 
-  await mongoose.disconnect();
+  await prisma.$disconnect();
   console.log('Seed concluído.');
 }
 

@@ -31,8 +31,8 @@ Aplicativo full-stack de delivery para restaurante — área do cliente + painel
 ## Tecnologias
 
 **Front-end** — React 18 · Vite · TypeScript · Tailwind CSS · React Router · React Hook Form + Zod · Zustand (carrinho) · Context API (auth/tema) · lucide-react
-**Back-end** — Node.js · Express · TypeScript · MongoDB · Mongoose · Zod · JWT · bcrypt
-**Deploy** — Vercel (front-end) · Render (back-end) · MongoDB Atlas (banco)
+**Back-end** — Node.js · Express · TypeScript · PostgreSQL · Prisma · Zod · JWT · bcrypt
+**Deploy** — Vercel (front-end + back-end serverless) · Neon (Postgres)
 
 ---
 
@@ -119,9 +119,10 @@ QuickOrder/
 
 ### Pré-requisitos
 - Node.js 20+
-- MongoDB — escolha:
-  - **MongoDB Atlas** (recomendado, grátis): cole a connection string em `server/.env`
-  - **MongoDB local** rodando em `mongodb://localhost:27017`
+- PostgreSQL — escolha:
+  - **Neon** (recomendado, grátis): cole a connection string em `server/.env`
+  - **Postgres local** rodando em `postgresql://localhost:5432`
+  - **Supabase** ou outro provedor compatível
 
 ### 1. Clonar e instalar
 ```bash
@@ -144,10 +145,11 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 cp client/.env.example client/.env
 ```
 
-### 3. Popular o banco com dados de teste
+### 3. Aplicar migrations e popular o banco
 ```bash
 cd server
-npm run seed
+npx prisma db push        # cria as tabelas no schema "quickorder"
+npm run seed              # popula 11 produtos + admin + cliente
 ```
 
 Isso cria:
@@ -173,7 +175,7 @@ cd client && npm run dev          # http://localhost:5173
 ### `server/.env`
 | Variável         | Descrição                                                         |
 | ---------------- | ----------------------------------------------------------------- |
-| `MONGODB_URI`    | Connection string do MongoDB                                      |
+| `DATABASE_URL`   | Connection string PostgreSQL (Neon, Supabase, ou local)           |
 | `JWT_SECRET`     | Chave para assinar tokens (≥32 caracteres)                        |
 | `JWT_EXPIRES_IN` | Tempo de vida do token (ex: `7d`)                                 |
 | `PORT`           | Porta do servidor (padrão `4000`)                                 |
@@ -199,26 +201,19 @@ cd client && npm run dev          # http://localhost:5173
 ## Deploy
 
 ### Front-end → Vercel
-1. Importe o repositório no Vercel
-2. **Root Directory:** `client`
-3. **Framework preset:** Vite (autodetectado)
-4. Variável de ambiente: `VITE_API_URL` = URL do back-end deployado
+1. Importe o repositório no Vercel → **Root Directory:** `client`
+2. **Framework preset:** Vite (autodetectado)
+3. Variável de ambiente: `VITE_API_URL` = URL do back-end + `/api`
 
-### Back-end → Render
-1. Em https://render.com → "New Web Service" → conecte ao repositório
-2. **Root Directory:** `server`
-3. **Build:** `npm install && npm run build`
-4. **Start:** `node dist/index.js`
-5. Variáveis de ambiente: `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`
+### Back-end → Vercel (serverless function)
+1. Importe o mesmo repositório como segundo projeto → **Root Directory:** `server`
+2. Vercel detecta a função `api/index.ts` automaticamente
+3. Variáveis de ambiente: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`
 
-> O arquivo `render.yaml` na raiz já tem essa configuração — você pode usar "Blueprint" no Render.
-
-### Banco → MongoDB Atlas
-1. Crie uma conta grátis em https://www.mongodb.com/atlas
-2. Crie um cluster (Free Tier M0)
-3. Em **Network Access** → "Allow access from anywhere" (0.0.0.0/0)
-4. Em **Database Access** → crie usuário com senha
-5. Copie a connection string e cole no `MONGODB_URI` do back-end
+### Banco → Neon
+1. Crie uma conta grátis em https://neon.tech
+2. Crie um projeto → copie a connection string
+3. Cole em `DATABASE_URL` do back-end
 
 ---
 

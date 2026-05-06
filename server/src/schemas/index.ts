@@ -1,6 +1,29 @@
 import { z } from 'zod';
-import { PRODUCT_CATEGORIES } from '../models/Product';
-import { ORDER_STATUSES, PAYMENT_METHODS } from '../models/Order';
+
+export const PRODUCT_CATEGORIES = [
+  'Hambúrgueres',
+  'Pizzas',
+  'Bebidas',
+  'Sobremesas',
+  'Combos',
+  'Porções',
+] as const;
+
+export const ORDER_STATUSES = [
+  'pending',
+  'confirmed',
+  'preparing',
+  'out_for_delivery',
+  'delivered',
+  'cancelled',
+] as const;
+
+export const PAYMENT_METHODS = [
+  'cash',
+  'pix',
+  'credit_card',
+  'debit_card',
+] as const;
 
 export const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(80),

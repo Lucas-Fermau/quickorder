@@ -1,22 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
-import { Favorite } from '../models/Favorite';
-import { Product } from '../models/Product';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../config/db';
 import { HttpError } from '../middleware/errorHandler';
 
 export const favoritesController = {
   async add(req: Request, res: Response, next: NextFunction) {
     try {
-      const product = await Product.findById(req.params.productId);
+      const product = await prisma.product.findUnique({ where: { id: req.params.productId } });
       if (!product) throw new HttpError(404, 'Produto não encontrado');
 
       try {
-        const fav = await Favorite.create({
-          userId: req.userId,
-          productId: req.params.productId,
+        const fav = await prisma.favorite.create({
+          data: { userId: req.userId!, productId: req.params.productId },
         });
         res.status(201).json({ favorite: fav });
       } catch (err) {
-        if (err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2002'
+        ) {
           return res.status(200).json({ message: 'Produto já está nos favoritos' });
         }
         throw err;
@@ -28,23 +30,35 @@ export const favoritesController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await Favorite.findOneAndDelete({
-        userId: req.userId,
-        productId: req.params.productId,
+      await prisma.favorite.delete({
+        where: {
+          userId_productId: { userId: req.userId!, productId: req.params.productId },
+        },
       });
-      if (!result) throw new HttpError(404, 'Favorito não encontrado');
       res.status(204).send();
     } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        return next(new HttpError(404, 'Favorito não encontrado'));
+      }
       next(err);
     }
   },
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const favorites = await Favorite.find({ userId: req.userId })
-        .sort({ createdAt: -1 })
-        .populate('productId');
-      res.json({ favorites });
+      const favorites = await prisma.favorite.findMany({
+        where: { userId: req.userId },
+        orderBy: { createdAt: 'desc' },
+        include: { product: true },
+      });
+
+      const shaped = favorites.map((f) => ({
+        id: f.id,
+        productId: f.product,
+        createdAt: f.createdAt,
+      }));
+
+      res.json({ favorites: shaped });
     } catch (err) {
       next(err);
     }

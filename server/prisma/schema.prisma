@@ -1,0 +1,155 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["quickorder"]
+}
+
+enum UserRole {
+  customer
+  admin
+
+  @@schema("quickorder")
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  preparing
+  out_for_delivery
+  delivered
+  cancelled
+
+  @@schema("quickorder")
+}
+
+enum PaymentMethod {
+  cash
+  pix
+  credit_card
+  debit_card
+
+  @@schema("quickorder")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(customer)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+  reviews   Review[]
+  favorites Favorite[]
+
+  @@map("users")
+  @@schema("quickorder")
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  category        String
+  imageUrl        String
+  available       Boolean  @default(true)
+  featured        Boolean  @default(false)
+  preparationTime Int      @default(20)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orderItems OrderItem[]
+  reviews    Review[]
+  favorites  Favorite[]
+
+  @@index([category])
+  @@index([available])
+  @@index([featured])
+  @@map("products")
+  @@schema("quickorder")
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  userId        String
+  total         Float
+  discount      Float         @default(0)
+  finalTotal    Float
+  status        OrderStatus   @default(pending)
+  paymentMethod PaymentMethod
+  street        String
+  number        String
+  complement    String?
+  neighborhood  String
+  city          String
+  zipCode       String
+  notes         String?
+  couponCode    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+  @@schema("quickorder")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  name      String
+  price     Float
+  quantity  Int
+  imageUrl  String
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+  @@schema("quickorder")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@map("reviews")
+  @@schema("quickorder")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+  @@schema("quickorder")
+}
