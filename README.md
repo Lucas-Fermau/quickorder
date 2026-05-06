@@ -1,6 +1,30 @@
 # QuickOrder Burger
 
+[![Live Demo](https://img.shields.io/badge/demo-live-22c55e?style=for-the-badge&logo=vercel)](https://quickorder-tau.vercel.app)
+[![Repo](https://img.shields.io/badge/repo-github-181717?style=for-the-badge&logo=github)](https://github.com/Lucas-Fermau/quickorder)
+[![Stack](https://img.shields.io/badge/stack-TypeScript%20%C2%B7%20React%20%C2%B7%20Express%20%C2%B7%20Prisma-f97316?style=for-the-badge)](https://quickorder-tau.vercel.app)
+
 Aplicativo full-stack de delivery para restaurante — área do cliente + painel administrativo. Carrinho com cupons, rastreio visual de pedido, autenticação JWT, controle de papéis (cliente / admin), tema claro/escuro e UI responsiva.
+
+> 🌐 **Demo ao vivo:** **<https://quickorder-tau.vercel.app>** — entre direto com o admin de teste e gerencie produtos/pedidos.
+
+---
+
+## Acesso rápido
+
+| | |
+|---|---|
+| 🌐 **App** | <https://quickorder-tau.vercel.app> |
+| 🔌 **API** | <https://quickorder-api-sepia.vercel.app/api/health> |
+| 💻 **Repo** | <https://github.com/Lucas-Fermau/quickorder> |
+
+### Contas de teste (já populadas no banco)
+
+| Tipo | Email | Senha |
+|---|---|---|
+| **Admin** | `admin@quickorder.com` | `123456` |
+| **Cliente** | `cliente@quickorder.com` | `123456` |
+
 
 > Projeto de portfólio criado para demonstrar engenharia full-stack: API REST tipada, modelagem MongoDB (5 entidades), autenticação JWT com middlewares de papel, gestão de estado com Zustand persistido, e fluxos completos de checkout e administração.
 
